@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; script-src 'self' https://ajax.googleapis.com/ 'unsafe-inline' 'unsafe-eval';  media-src *"> -->
+	<link rel="shortcut icon" type="image/png" href="favicon.ico"/>
+	<!-- <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"> -->
+	<script type="text/javascript" src="lib/dist/quagga.js"></script>
+</head>
+<body>
+	<script type="text/javascript" src="lib/messenger.js"></script>
+	
+	<script type="text/javascript">
+		window.extAsyncInit = function() {
+			console.log('in messenger function')
+		};
+		MessengerExtensions.getContext('YOUR_APP_ID', 
+		  function success(thread_context){
+		    console.log(thread_context)
+		  },
+		  function error(err){
+		    console.log(err)
+		  }
+		);
+	</script>
+
+	<div id="">opa</div>
+	<div id="yourElement"></div>
+
+	<script type="text/javascript">
+
+		Quagga.init({
+		    inputStream : {
+		        name : "Live",
+		        type : "LiveStream",
+		        target: document.querySelector('#yourElement')    // Or '#yourElement' (optional)
+		    },
+		    decoder : {
+		    	readers : ["code_128_reader"]
+		        // readers : ["ean_reader"]
+		    }
+		}, function(err) {
+		    if (err) {
+		        console.log(err);
+		        return
+		    }
+		    console.log("Initialization finished. Ready to start");
+		    Quagga.start();
+		});
+
+		Quagga.onProcessed(function(result) {
+	        var drawingCtx = Quagga.canvas.ctx.overlay,
+	            drawingCanvas = Quagga.canvas.dom.overlay;
+
+	        if (result) {
+	            if (result.boxes) {
+	                drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+	                result.boxes.filter(function (box) {
+	                    return box !== result.box;
+	                }).forEach(function (box) {
+	                    Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+	                });
+	            }
+
+	            if (result.box) {
+	                Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+	            }
+
+	            if (result.codeResult && result.codeResult.code) {
+	                Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
+	            }
+	        }
+	    });
+
+	    Quagga.onDetected(function(result) {
+	        var code = result.codeResult.code;
+	        console.log(code);
+	        alert(code);
+	    });
+
+	</script>
+</body>
+</html>
